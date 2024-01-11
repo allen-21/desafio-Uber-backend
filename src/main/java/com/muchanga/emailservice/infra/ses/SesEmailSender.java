@@ -10,27 +10,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SesEmailSender implements EmailSenderGeteway {
-    private final AmazonSimpleEmailService sesClient;
-
+    private final AmazonSimpleEmailService amazonSimpleEmailService;
     @Autowired
-    public SesEmailSender(AmazonSimpleEmailService sesClient) {
-        this.sesClient = sesClient;
+    public SesEmailSender(AmazonSimpleEmailService amazonSimpleEmailService){
+        this.amazonSimpleEmailService = amazonSimpleEmailService;
     }
-
     @Override
-    public void sendEmail(String toEmail, String subject, String body) {
+    public void sendEmail(String to, String subject, String body) {
         SendEmailRequest request = new SendEmailRequest()
                 .withSource("valteranibal1@gmail.com")
-                .withDestination(new Destination().withToAddresses(toEmail))
+                .withDestination(new Destination().withBccAddresses(to))
                 .withMessage(new Message()
                         .withSubject(new Content(subject))
                         .withBody(new Body().withText(new Content(body)))
                 );
-
         try {
-            sesClient.sendEmail(request);
-        } catch (AmazonServiceException ex) {
-            throw new EmailServiceException("Email sending failed", ex);
+            this.amazonSimpleEmailService.sendEmail(request);
+        }catch (AmazonServiceException exception){
+            throw new EmailServiceException("Failure while sending email", exception);
         }
     }
 }
